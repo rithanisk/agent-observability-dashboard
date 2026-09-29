@@ -1,0 +1,18 @@
+{
+  "name": "tracewell",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @tracewell/web",
+    "build:web": "npm run build --workspace @tracewell/web",
+    "lint:web": "npm run lint --workspace @tracewell/web",
+    "typecheck:web": "npm run typecheck --workspace @tracewell/web",
+    "test:web": "npm run test --workspace @tracewell/web"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
+

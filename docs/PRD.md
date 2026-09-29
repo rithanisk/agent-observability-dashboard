@@ -134,7 +134,7 @@ flowchart LR
     Redis --> Checks["Online checks<br/>loops, verdicts"]
     Checks -- verdicts --> PG
     Redis -- push --> WS["WebSocket gateway<br/>per-trace rooms"]
-    WS --> UI["React dashboard<br/>TypeScript, Vite"]
+    WS --> UI["Next.js dashboard<br/>TypeScript, App Router"]
     Eval["Eval runner<br/>CLI + GitHub Action"] -- replays dataset --> Agent
 ```
 
@@ -158,18 +158,18 @@ The dashboard reads history through the same FastAPI service over REST, and only
 | Ingest and API | FastAPI, Pydantic v2, `opentelemetry-proto` for decoding | Async, typed, fast to build | Go with `net/http` |
 | Live fan-out | Redis Streams | Durable, lets gateways scale horizontally | Postgres `LISTEN/NOTIFY` for a smaller MVP |
 | Storage | Postgres 16 with JSONB, optional TimescaleDB for metrics rollups | Familiar, flexible, enough for 1M spans | ClickHouse as a P2 benchmark |
-| Frontend | React, TypeScript, Vite, TanStack Query, TanStack Table, TanStack Virtual | Real-time lists at scale without jank | Next.js for SSR on the public demo |
+| Frontend | Next.js App Router, React, TypeScript, TanStack Query, TanStack Table, TanStack Virtual | One frontend for the hosted demo and self-hosted dashboard, with strong Vercel support | Vite SPA |
 | UI kit | shadcn/ui with Tailwind | Professional look on day one | Mantine |
 | Charts | Recharts for metrics, a custom SVG waterfall for traces | The waterfall is the signature view | visx |
 | Agent graph | React Flow (xyflow) | Standard for node graphs, auto-layout with ELK | Cytoscape.js |
 | Evals | Own runner and scorers, with adapters for [DeepEval](https://deepeval.com/guides/guides-ai-agent-evaluation-metrics) metrics and [promptfoo](https://www.promptfoo.dev/docs/integrations/ci-cd/) YAML | Own the core, integrate the ecosystem | Inspect AI |
-| Demo agents | OpenAI Agents SDK research agent, a LangGraph multi-agent workflow, one [τ²-bench](https://github.com/sierra-research/tau2-bench) retail task set | Proves framework independence with real multi-agent traces | CrewAI, Agno |
+| Demo agents | Google ADK research workflow backed by NUS SoCLaaS, followed by a small LangGraph compatibility agent and one [τ²-bench](https://github.com/sierra-research/tau2-bench) retail task set | ADK provides a real multi-agent workflow and native OTel-compatible spans; LangGraph proves framework independence | OpenAI Agents SDK, CrewAI |
 | Testing | pytest, Vitest, Playwright for end-to-end, k6 for load | Reproducible performance numbers | Locust |
 | CI | GitHub Actions for tests, lint and the eval gate | The eval gate is a headline feature | none |
 | Packaging | Docker Compose, one `make demo` command | The 5-minute setup goal depends on it | Helm chart as a P2 |
-| Hosting | [Render free tier](https://dev.to/pavel-hostim/render-vs-railway-vs-flyio-pricing-compared-2026-2e5p) for a sleeping demo, or Fly.io at roughly $2 to $7 a month to keep it always on | A demo link that works | Railway |
+| Hosting | Vercel for Next.js, Railway for the persistent FastAPI/WebSocket service, and Supabase Postgres | Public demo with straightforward GitHub deployments while retaining a portable Docker Compose setup | Single-host Docker deployment |
 
-Render's free services spin down after about 15 idle minutes, so the first visit takes a while to wake.
+Supabase is treated as standard Postgres rather than a required proprietary API. Local and self-hosted deployments use the same migrations with a Docker Postgres service.
 
 ## Data model and trace schema
 
@@ -294,7 +294,7 @@ Eight weeks at roughly 10 to 12 hours a week.
 | Week | Dates | Focus | Done when |
 | --- | --- | --- | --- |
 | 1 | 28 Sep to 4 Oct | Skeleton | Monorepo, Docker Compose, FastAPI OTLP endpoint storing spans in Postgres, CI running lint and tests |
-| 2 | 5 to 11 Oct | Demo agents and SDK | Research agent on OpenAI Agents SDK and a LangGraph two-agent workflow emitting GenAI spans, `tracewell` SDK with decorators and the live `on_start` processor |
+| 2 | 5 to 11 Oct | Demo agents and SDK | Research workflow on Google ADK using SoCLaaS/Qwen, a small LangGraph compatibility agent emitting GenAI spans, `tracewell` SDK with decorators and the live `on_start` processor |
 | 3 | 12 to 18 Oct | Live view | Redis Streams fan-out, WebSocket gateway with rooms and coalescing, runs list updating live in React |
 | 4 | 19 to 25 Oct | Trace detail | SVG waterfall, span panel, token and cost rollups, failure highlighting, first demo GIF |
 | 5 | 26 Oct to 1 Nov | Eval harness | YAML datasets, runner, code and trace-based scorers, LLM judge, eval run page |
@@ -315,12 +315,13 @@ If time gets tight, weeks 1 to 6 deliver the core product. Drop the agent graph 
 | "Why not just use Langfuse?" | Certain | Live start events, online loop detection, paired regression stats, and it interoperates with Langfuse through OTLP |
 | Limited build time | Medium | Cut line after week 6, public build log so partial progress still shows |
 
-### Open questions
+### Decisions recorded 30 September 2026
 
-- Final name. Tracewell is a placeholder, check GitHub and PyPI for collisions.
-- Postgres only, or a ClickHouse benchmark as a stretch?
-- Python-only SDK, or a TypeScript SDK too?
-- Which LLM provider for the demo agents and judge, given cost?
+- Tracewell remains the working name; availability is checked before publishing packages.
+- Postgres is the v1 store. Supabase hosts Postgres for the public demo; ClickHouse is out of scope.
+- The v1 SDK is Python-only.
+- Google ADK is the primary demo framework. It calls `qwen3.5:9b` through the NUS SoCLaaS OpenAI-compatible endpoint; keys remain server-side and public visitors cannot trigger paid or quota-consuming runs.
+- Next.js replaces the Vite SPA. Vercel hosts the web app, Railway hosts FastAPI, and the public demo contains read-only synthetic traces.
 
 ## Sources
 
