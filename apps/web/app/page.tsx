@@ -1,3 +1,4 @@
+import { AgentRunner } from "@/components/agent-runner";
 import { RunList } from "@/components/run-list";
 
 export default function Home() {
@@ -29,6 +30,8 @@ export default function Home() {
         </div>
       </section>
 
+      <AgentRunner />
+
       <section className="runs-section">
         <div className="section-heading">
           <div>
@@ -42,4 +45,3 @@ export default function Home() {
     </main>
   );
 }
-

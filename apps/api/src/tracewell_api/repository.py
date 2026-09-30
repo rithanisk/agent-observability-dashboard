@@ -93,10 +93,15 @@ class TraceRepository:
         if any(span.end_time is None for span in spans):
             status = "open"
 
-        costs = [span.cost_usd for span in spans if span.cost_usd is not None]
+        usage_spans = _usage_spans(spans)
+        costs = [span.cost_usd for span in usage_spans if span.cost_usd is not None]
         total_cost = sum(costs, Decimal("0")) if costs else None
-        total_tokens = sum((span.input_tokens or 0) + (span.output_tokens or 0) for span in spans)
-        first_model = next((span.model for span in spans if span.model), None)
+        total_tokens = sum(
+            (span.input_tokens or 0) + (span.output_tokens or 0) for span in usage_spans
+        )
+        first_model = next((span.model for span in usage_spans if span.model), None)
+        if first_model is None:
+            first_model = next((span.model for span in spans if span.model), None)
 
         statement = insert(Run).values(
             trace_id=trace_id,
@@ -191,3 +196,17 @@ def _span_dict(span: Span) -> dict[str, Any]:
         "resource_attributes": span.resource_attributes,
         "events": span.events,
     }
+
+
+def _usage_spans(spans: list[Span]) -> list[Span]:
+    """Prefer semantic model spans over ADK's duplicate call_llm wrapper spans."""
+    canonical = [span for span in spans if span.operation in {"chat", "generate_content"}]
+    return canonical or [
+        span
+        for span in spans
+        if (
+            span.input_tokens is not None
+            or span.output_tokens is not None
+            or span.cost_usd is not None
+        )
+    ]

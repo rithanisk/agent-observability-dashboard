@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { formatDuration, formatStartedAt, formatTokens } from "@/lib/format";
+import { formatDuration, formatStartedAt, formatTokens, humanizeSpanName } from "@/lib/format";
 import type { Run } from "@/lib/types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -58,18 +59,23 @@ export function RunList() {
         <span>Run</span><span>Status</span><span>Model</span><span>Duration</span><span>Tokens</span>
       </div>
       {runs.map((run) => (
-        <div className="run-row" role="row" key={run.trace_id}>
+        <Link
+          className="run-row run-row-link"
+          role="row"
+          key={run.trace_id}
+          href={`/runs/${run.trace_id}`}
+          aria-label={`Open trace for ${run.root_name}`}
+        >
           <span className="run-name">
-            <strong>{run.root_name}</strong>
+            <strong>{humanizeSpanName(run.root_name)}</strong>
             <small>{formatStartedAt(run.started_at)}</small>
           </span>
           <span><span className={`status status-${run.status}`}>{run.status}</span></span>
           <span className="muted">{run.model ?? "—"}</span>
           <span>{formatDuration(run.duration_ms)}</span>
           <span>{formatTokens(run.total_tokens)}</span>
-        </div>
+        </Link>
       ))}
     </div>
   );
 }
-

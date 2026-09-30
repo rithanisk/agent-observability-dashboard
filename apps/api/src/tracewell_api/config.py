@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     ingest_token: str = ""
     auto_create_schema: bool = False
     cors_origins: str = "http://localhost:3000"
+    self_otlp_url: str = "http://127.0.0.1:8000/v1/traces"
+    soclaas_base_url: str = Field(
+        default="https://soclaas-api.comp.nus.edu.sg/v1",
+        validation_alias="SOCLAAS_BASE_URL",
+    )
+    soclaas_model: str = Field(default="qwen3.5:9b", validation_alias="SOCLAAS_MODEL")
+    soclaas_api_key: str = Field(default="", validation_alias="SOCLAAS_API_KEY")
 
     @property
     def async_database_url(self) -> str:

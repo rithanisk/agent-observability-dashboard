@@ -3,6 +3,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
+from tracewell_api import main
 from tracewell_api.main import app
 from tracewell_api.repository import get_repository
 
@@ -46,8 +47,9 @@ def repository() -> FakeRepository:
 
 
 @pytest.fixture
-def client(repository: FakeRepository) -> Iterator[TestClient]:
+def client(repository: FakeRepository, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     app.dependency_overrides[get_repository] = lambda: repository
+    monkeypatch.setattr(main.settings, "auto_create_schema", False)
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()

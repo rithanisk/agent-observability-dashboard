@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from google.protobuf.json_format import MessageToDict
 
 from tracewell_api import main
+from tracewell_api.agent_runtime import AgentRunResult
 
 from .conftest import FakeRepository
 from .fixtures import sample_request
@@ -96,3 +97,16 @@ def test_gets_trace_and_returns_404(client: TestClient) -> None:
     assert found.status_code == 200
     assert found.json()["run"]["root_name"] == "research workflow"
     assert missing.status_code == 404
+
+
+def test_runs_agent_workflow(client: TestClient, monkeypatch) -> None:
+    async def fake_run(prompt, settings):
+        assert prompt == "What matters?"
+        assert settings is main.settings
+        return AgentRunResult(trace_id="ab" * 16, answer="Tracing matters.", model="qwen3.5:9b")
+
+    monkeypatch.setattr("tracewell_api.agent_runtime.run_research_workflow", fake_run)
+    response = client.post("/api/agent/runs", json={"prompt": "What matters?"})
+
+    assert response.status_code == 201
+    assert response.json()["trace_id"] == "ab" * 16

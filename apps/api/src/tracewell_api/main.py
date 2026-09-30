@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceResponse
+from pydantic import BaseModel, Field
 
 from tracewell_api import __version__
 from tracewell_api.config import get_settings
@@ -36,7 +37,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -86,6 +87,26 @@ async def get_trace(
     if trace is None:
         raise HTTPException(status_code=404, detail="Trace not found")
     return trace
+
+
+class AgentRunRequest(BaseModel):
+    prompt: str = Field(min_length=3, max_length=4_000)
+
+
+@app.post("/api/agent/runs", status_code=201)
+async def run_agent(payload: AgentRunRequest) -> dict[str, str]:
+    from tracewell_api.agent_runtime import AgentConfigurationError, run_research_workflow
+
+    try:
+        result = await run_research_workflow(payload.prompt, settings)
+    except AgentConfigurationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"The agent run failed ({type(exc).__name__})",
+        ) from exc
+    return {"trace_id": result.trace_id, "answer": result.answer, "model": result.model}
 
 
 def _authorize_ingestion(authorization: str | None) -> None:

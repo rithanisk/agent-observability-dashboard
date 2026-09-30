@@ -13,3 +13,33 @@ export type Run = {
   verdict: "ok" | "warn" | "fail" | null;
 };
 
+export type Span = {
+  trace_id: string;
+  span_id: string;
+  parent_span_id: string | null;
+  name: string;
+  operation: string | null;
+  provider: string | null;
+  agent_name: string | null;
+  model: string | null;
+  tool_name: string | null;
+  status: "ok" | "error" | "open";
+  error_type: string | null;
+  start_time: string;
+  end_time: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cost_usd: number | null;
+  attributes: Record<string, unknown>;
+  resource_attributes: Record<string, unknown>;
+  events: Array<{
+    name: string;
+    time: string;
+    attributes: Record<string, unknown>;
+  }>;
+};
+
+export type Trace = {
+  run: Run;
+  spans: Span[];
+};
