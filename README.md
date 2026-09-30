@@ -4,9 +4,9 @@ Tracewell is an OpenTelemetry-native flight recorder and regression alarm for
 AI agents. It ingests OTLP traces, turns them into readable runs, and will
 compare agent versions before they ship.
 
-The repository is currently in the Week 1 foundation milestone. It includes a
-Next.js dashboard, a FastAPI OTLP receiver, Postgres storage, Docker Compose,
-and CI.
+The repository includes a Next.js dashboard, a FastAPI OTLP receiver, Postgres
+storage, Docker Compose, CI, and a traced Google ADK research workflow backed
+by NUS SoCLaaS.
 
 ## Local development
 
@@ -26,6 +26,17 @@ Then open:
 
 The local API accepts unauthenticated OTLP traffic. Set
 `TRACEWELL_INGEST_TOKEN` in hosted environments and send it as a Bearer token.
+
+## Run the ADK demo
+
+Set `SOCLAAS_API_KEY` in the ignored root `.env`, start the stack, and use the
+**Run the real workflow** form on the dashboard. The backend runs a research
+agent followed by a synthesis agent using `qwen3.5:9b`. ADK's native
+OpenTelemetry spans are ingested by Tracewell and the browser opens the real
+trace waterfall when the workflow completes.
+
+Prompt and response content capture is enabled for this local demo. Keep it
+disabled or add redaction before sending production or sensitive data.
 
 ## OTLP ingestion
 

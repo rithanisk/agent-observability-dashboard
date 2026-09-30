@@ -25,6 +25,10 @@ services:
       TRACEWELL_INGEST_TOKEN: ${TRACEWELL_INGEST_TOKEN:-}
       TRACEWELL_AUTO_CREATE_SCHEMA: "true"
       TRACEWELL_CORS_ORIGINS: http://localhost:3001
+      TRACEWELL_SELF_OTLP_URL: http://127.0.0.1:8000/v1/traces
+      SOCLAAS_BASE_URL: ${SOCLAAS_BASE_URL:-https://soclaas-api.comp.nus.edu.sg/v1}
+      SOCLAAS_MODEL: ${SOCLAAS_MODEL:-qwen3.5:9b}
+      SOCLAAS_API_KEY: ${SOCLAAS_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

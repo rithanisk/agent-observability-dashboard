@@ -6,7 +6,11 @@ requires-python = ">=3.12"
 dependencies = [
   "asyncpg>=0.30,<1",
   "fastapi>=0.115,<1",
+  "google-adk==2.9.2",
+  "litellm==1.101.0",
+  "opentelemetry-exporter-otlp-proto-http>=1.39,<2",
   "opentelemetry-proto>=1.39,<2",
+  "opentelemetry-sdk>=1.39,<2",
   "protobuf>=5,<7",
   "pydantic-settings>=2.7,<3",
   "sqlalchemy[asyncio]>=2.0.36,<3",
@@ -48,4 +52,3 @@ source = ["tracewell_api"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-
